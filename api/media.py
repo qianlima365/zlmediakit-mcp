@@ -43,13 +43,12 @@ class ZLMediaKitMedia:
         }
         return await self.client.get("kick_sessions", params=params)
     
-    async def add_stream_proxy(self, schema: str, vhost: str, app: str, stream: str,
+    async def add_stream_proxy(self, vhost: str, app: str, stream: str,
                             url: str, enable_rtsp: bool = True, enable_rtmp: bool = True,
                             enable_hls: bool = True, enable_mp4: bool = False) -> Dict[str, Any]:
         """添加流代理
         
         Args:
-            schema: 协议，如rtsp或rtmp
             vhost: 虚拟主机
             app: 应用名
             stream: 流id
@@ -60,7 +59,6 @@ class ZLMediaKitMedia:
             enable_mp4: 是否开启MP4录制
         """
         params = {
-            "schema": schema,
             "vhost": vhost,
             "app": app,
             "stream": stream,
@@ -81,7 +79,7 @@ class ZLMediaKitMedia:
         return await self.client.get("delStreamProxy", params={"key": key})
 
 
-    async def add_ffmpeg_source(self, src_url: str, dst_url: str, timeout_ms: int, ffmpeg_cmd_key: int, enable_hls: bool = True, enable_mp4: bool = False) -> Dict[str, Any]:
+    async def add_ffmpeg_source(self, src_url: str, dst_url: str, timeout_ms: int, ffmpeg_cmd_key: str, enable_hls: bool = False, enable_mp4: bool = False) -> Dict[str, Any]:
         """
         通过fork FFmpeg进程的方式拉流代理，支持任意协议
         """

@@ -43,7 +43,8 @@ class HttpClient:
         # 合并认证参数
         params = kwargs.get("params", {})
         params.update(self._generate_auth_params())
-        kwargs["params"] = params
+        # 处理params, 如果对应的值为为None，则删除该键
+        kwargs["params"] = {key: value for key, value in params.items() if value is not None}
         
         # 构建完整URL
         url = urljoin(self.host, urljoin(Config.API_VERSION, path))

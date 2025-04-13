@@ -24,7 +24,7 @@ recorder = ZLMediaKitRecorder(Config.ZLMEDIAKIT_HOST, Config.ZLMEDIAKIT_SECRET)
 
 
 @mcp.tool()
-async def get_media_list(protocol: str, vhost: str, app: str, stream: str) -> List[Dict[str, Any]]:
+async def get_media_list(protocol: str = None, vhost: str = None, app: str = None, stream: str = None) -> List[Dict[str, Any]]:
     """
     获取媒体流列表
         
@@ -39,7 +39,7 @@ async def get_media_list(protocol: str, vhost: str, app: str, stream: str) -> Li
     return await media.get_media_list(protocol, vhost, app, stream)
 
 @mcp.tool()    
-async def close_streams(protocol: str, vhost: str, app: str, stream: str, force: int) -> Dict[str, Any]:
+async def close_streams(protocol: str = None, vhost: str = None, app: str = None, stream: str = None, force: int = 0) -> Dict[str, Any]:
     """
     关闭流
     
@@ -77,7 +77,7 @@ async def kick_session(id: str) -> Dict[str, Any]:
     return await media.kick_session(id)
 
 @mcp.tool()
-async def kick_sessions(local_port: int, peer_ip: str) -> Dict[str, Any]:
+async def kick_sessions(local_port: int = 554, peer_ip: str = None) -> Dict[str, Any]:
     """
     断开tcp连接,比如说可以断开rtsp、rtmp播放器等
     
@@ -95,7 +95,7 @@ async def kick_sessions(local_port: int, peer_ip: str) -> Dict[str, Any]:
     """
     return await media.kick_sessions(local_port, peer_ip)
 @mcp.tool()    
-async def add_stream_proxy(protocol: str, vhost: str, app: str, stream: str,
+async def add_stream_proxy(vhost: str, app: str, stream: str,
                             url: str, enable_rtsp: bool = True, enable_rtmp: bool = True,
                             enable_hls: bool = True, enable_mp4: bool = False) -> Dict[str, Any]:
     """
@@ -115,7 +115,7 @@ async def add_stream_proxy(protocol: str, vhost: str, app: str, stream: str,
     Returns: 
         状态信息
     """
-    return await media.add_stream_proxy(protocol, vhost, app, stream, url, enable_rtsp, enable_rtmp, enable_hls, enable_mp4)
+    return await media.add_stream_proxy(vhost, app, stream, url, enable_rtsp, enable_rtmp, enable_hls, enable_mp4)
 
 @mcp.tool()    
 async def del_stream_proxy(key: str) -> Dict[str, Any]:
@@ -137,8 +137,7 @@ async def del_stream_proxy(key: str) -> Dict[str, Any]:
     return await media.del_stream_proxy(key)
 
 @mcp.tool()
-async def add_ffmpeg_source(src_url: str, dst_url: str, timeout_ms: int, ffmpeg_cmd_key: int,
-                            enable_hls: bool = True, enable_mp4: bool = False) -> Dict[str, Any]:
+async def add_ffmpeg_source(src_url: str, dst_url: str, timeout_ms: int) -> Dict[str, Any]:
 
     """
     添加ffmpeg拉流代理
@@ -147,10 +146,8 @@ async def add_ffmpeg_source(src_url: str, dst_url: str, timeout_ms: int, ffmpeg_
         src_url: 必传参数,FFmpeg拉流地址,支持任意协议或格式(只要FFmpeg支持即可)
         dst_url: 必传参数,FFmpeg rtmp推流地址,一般都是推给自己,例如rtmp://127.0.0.1/live/stream_form_ffmpeg
         timeout_ms: 必传参数,FFmpeg推流成功超时时间
-        ffmpeg_cmd_key: 非必传参数,配置文件中FFmpeg命令参数模板key(非内容),置空则采用默认模板:ffmpeg.cmd
         enable_hls: 必传参数,是否开启HLS录制
         enable_mp4: 必传参数,是否开启MP4录制
-    
     Returns:
         状态信息
         {
@@ -160,7 +157,7 @@ async def add_ffmpeg_source(src_url: str, dst_url: str, timeout_ms: int, ffmpeg_
             }
         }
     """
-    return await media.add_ffmpeg_source(src_url, dst_url, timeout_ms, ffmpeg_cmd_key, enable_hls, enable_mp4)
+    return await media.add_ffmpeg_source(src_url, dst_url, timeout_ms, "ffmpeg.cmd", None, None)
 
 @mcp.tool()
 async def del_ffmpeg_source(key: str) -> Dict[str, Any]:
@@ -321,20 +318,20 @@ def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlett
         ],
     )
 
-# if __name__ == "__main__":
-#     mcp.run(transport='stdio')
-
 if __name__ == "__main__":
-    mcp_server = mcp._mcp_server   
+    mcp.run(transport='stdio')
 
-    import argparse
+# if __name__ == "__main__":
+#     mcp_server = mcp._mcp_server   
+
+#     import argparse
     
-    parser = argparse.ArgumentParser(description='Run MCP SSE-based server')
-    parser.add_argument('--host', default='0.0.0.0', help='Host to bind to')
-    parser.add_argument('--port', type=int, default=8020, help='Port to listen on')
-    args = parser.parse_args()
+#     parser = argparse.ArgumentParser(description='Run MCP SSE-based server')
+#     parser.add_argument('--host', default='0.0.0.0', help='Host to bind to')
+#     parser.add_argument('--port', type=int, default=8020, help='Port to listen on')
+#     args = parser.parse_args()
 
-    # Bind SSE request handling to MCP server
-    starlette_app = create_starlette_app(mcp_server, debug=True)
+#     # Bind SSE request handling to MCP server
+#     starlette_app = create_starlette_app(mcp_server, debug=True)
 
-    uvicorn.run(starlette_app, host=args.host, port=args.port)
+#     uvicorn.run(starlette_app, host=args.host, port=args.port)

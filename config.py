@@ -3,7 +3,7 @@
 class Config:
     # ZLMediaKit服务器配置
     ZLMEDIAKIT_HOST = "http://localhost:8080"
-    ZLMEDIAKIT_SECRET = "your_secret"
+    ZLMEDIAKIT_SECRET = "31vSV3eNzUWI2BhQvaZYx1jkO55TOr4a"
     
     # API路径配置
     API_VERSION = "/index/api/"
