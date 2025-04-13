@@ -6,7 +6,13 @@ from api.server import ZLMediaKitServer
 from api.media import ZLMediaKitMedia
 from api.recorder import ZLMediaKitRecorder
 from typing import Dict, Any, Optional, List
-from mcp.server import FastMCP
+
+from mcp.server import FastMCP, Server
+from starlette.applications import Starlette
+from mcp.server.sse import SseServerTransport
+from starlette.requests import Request
+from starlette.routing import Mount, Route
+import uvicorn
 
 # # 初始化 FastMCP 服务器
 mcp = FastMCP('zlmediakit-mcp')
@@ -18,28 +24,27 @@ recorder = ZLMediaKitRecorder(Config.ZLMEDIAKIT_HOST, Config.ZLMEDIAKIT_SECRET)
 
 
 @mcp.tool()
-async def get_media_list(schema: Optional[str] = None, vhost: Optional[str] = None,
-                          app: Optional[str] = None, stream: Optional[str] = None) -> List[Dict[str, Any]]:
+async def get_media_list(protocol: str, vhost: str, app: str, stream: str) -> List[Dict[str, Any]]:
     """
     获取媒体流列表
         
     Args:
-        schema: 协议,如rtsp或rtmp
+        protocol: 协议,如rtsp或rtmp
         vhost: 虚拟主机,默认为__defaultVhost__
         app: 应用名
         stream: 流id
     Returns: 
         媒体流列表    
     """
-    return await media.get_media_list(schema, vhost, app, stream)
+    return await media.get_media_list(protocol, vhost, app, stream)
 
 @mcp.tool()    
-async def close_streams(schema: str, vhost: str, app: str, stream: str, force: int) -> Dict[str, Any]:
+async def close_streams(protocol: str, vhost: str, app: str, stream: str, force: int) -> Dict[str, Any]:
     """
     关闭流
     
     Args:
-        schema: 协议,如rtsp或rtmp
+        protocol: 协议,如rtsp或rtmp
         vhost: 虚拟主机,默认为__defaultVhost__
         app: 应用名
         stream: 流id
@@ -52,7 +57,7 @@ async def close_streams(schema: str, vhost: str, app: str, stream: str, force: i
         }
     """
 
-    return await media.close_streams(schema, vhost, app, stream)
+    return await media.close_streams(protocol, vhost, app, stream, force)
 
 @mcp.tool()
 async def kick_session(id: str) -> Dict[str, Any]:
@@ -90,14 +95,14 @@ async def kick_sessions(local_port: int, peer_ip: str) -> Dict[str, Any]:
     """
     return await media.kick_sessions(local_port, peer_ip)
 @mcp.tool()    
-async def add_stream_proxy(schema: str, vhost: str, app: str, stream: str,
+async def add_stream_proxy(protocol: str, vhost: str, app: str, stream: str,
                             url: str, enable_rtsp: bool = True, enable_rtmp: bool = True,
                             enable_hls: bool = True, enable_mp4: bool = False) -> Dict[str, Any]:
     """
     添加流代理
         
     Args:
-        schema: 协议,如rtsp或rtmp
+        protocol: 协议,如rtsp或rtmp
         vhost: 虚拟主机
         app: 应用名
         stream: 流id
@@ -110,7 +115,7 @@ async def add_stream_proxy(schema: str, vhost: str, app: str, stream: str,
     Returns: 
         状态信息
     """
-    return await media.add_stream_proxy(schema, vhost, app, stream, url, enable_rtsp, enable_rtmp, enable_hls, enable_mp4)
+    return await media.add_stream_proxy(protocol, vhost, app, stream, url, enable_rtsp, enable_rtmp, enable_hls, enable_mp4)
 
 @mcp.tool()    
 async def del_stream_proxy(key: str) -> Dict[str, Any]:
@@ -289,3 +294,47 @@ async def get_snap(url: str, timeout_sec: int, expire_sec: int) -> Dict[str, Any
 
     """
     return await recorder.get_snap(url, timeout_sec, expire_sec)
+
+
+
+def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlette:
+    """Create a Starlette application that can server the provied mcp server with SSE."""
+    sse = SseServerTransport("/messages/")
+
+    async def handle_sse(request: Request) -> None:
+        async with sse.connect_sse(
+                request.scope,
+                request.receive,
+                request._send,  # noqa: SLF001
+        ) as (read_stream, write_stream):
+            await mcp_server.run(
+                read_stream,
+                write_stream,
+                mcp_server.create_initialization_options(),
+            )
+
+    return Starlette(
+        debug=debug,
+        routes=[
+            Route("/sse", endpoint=handle_sse),
+            Mount("/messages/", app=sse.handle_post_message),
+        ],
+    )
+
+# if __name__ == "__main__":
+#     mcp.run(transport='stdio')
+
+if __name__ == "__main__":
+    mcp_server = mcp._mcp_server   
+
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Run MCP SSE-based server')
+    parser.add_argument('--host', default='0.0.0.0', help='Host to bind to')
+    parser.add_argument('--port', type=int, default=8020, help='Port to listen on')
+    args = parser.parse_args()
+
+    # Bind SSE request handling to MCP server
+    starlette_app = create_starlette_app(mcp_server, debug=True)
+
+    uvicorn.run(starlette_app, host=args.host, port=args.port)

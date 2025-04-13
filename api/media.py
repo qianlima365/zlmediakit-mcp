@@ -9,8 +9,7 @@ class ZLMediaKitMedia:
     def __init__(self, host: str, secret: str):
         self.client = HttpClient(host, secret)
     
-    async def get_media_list(self, schema: Optional[str] = None, vhost: Optional[str] = None,
-                          app: Optional[str] = None, stream: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def get_media_list(self, schema: str, vhost: str, app: str, stream: str) -> List[Dict[str, Any]]:
         """获取媒体流列表
         """
         params = {
