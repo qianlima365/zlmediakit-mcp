@@ -1,10 +1,10 @@
 """ZLMediaKit MCP服务主程序"""
 
 import asyncio
-from config import Config
-from api.server import ZLMediaKitServer
-from api.media import ZLMediaKitMedia
-from api.recorder import ZLMediaKitRecorder
+from src.config import Config
+from src.api.server import ZLMediaKitServer
+from src.api.media import ZLMediaKitMedia
+from src.api.recorder import ZLMediaKitRecorder
 from typing import Dict, Any, Optional, List
 
 from mcp.server import FastMCP, Server

@@ -1,7 +1,7 @@
 """ZLMediaKit媒体流管理模块"""
 
 from typing import Dict, Any, Optional, List
-from utils.http_client import HttpClient
+from src.utils.http_client import HttpClient
 
 class ZLMediaKitMedia:
     """ZLMediaKit媒体流管理类"""

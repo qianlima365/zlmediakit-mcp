@@ -9,7 +9,7 @@ services:
     container_name: zlmediakit-mcp-sse
     ports:
       - "8021:8020"
-    command: ["uv", "run", "main.py", "--host", "0.0.0.0", "--port", "8020"]
+    command: ["python", "main.py", "--host", "0.0.0.0", "--port", "8020"]
   
   zlmediakit:
     image: zlmediakit/zlmediakit:master

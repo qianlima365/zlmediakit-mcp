@@ -1,7 +1,7 @@
 """ZLMediaKit服务器管理模块"""
 
 from typing import Dict, Any, Optional
-from utils.http_client import HttpClient
+from src.utils.http_client import HttpClient
 
 class ZLMediaKitServer:
     """ZLMediaKit服务器管理类"""

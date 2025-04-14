@@ -6,7 +6,7 @@ import time
 from typing import Dict, Any, Optional
 from urllib.parse import urljoin
 
-from config import Config
+from src.config import Config
 
 class HttpClient:
     def __init__(self, host: str = Config.ZLMEDIAKIT_HOST, secret: str = Config.ZLMEDIAKIT_SECRET):

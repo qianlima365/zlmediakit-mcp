@@ -1,7 +1,7 @@
 """ZLMediaKit录制管理模块"""
 
 from typing import Dict, Any, Optional
-from utils.http_client import HttpClient
+from src.utils.http_client import HttpClient
 
 class ZLMediaKitRecorder:
     """ZLMediaKit录制管理类"""
